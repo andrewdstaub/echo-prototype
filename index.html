@@ -1,8 +1,8 @@
-<!-- v4.7 -->
+<!-- v4.7.2 -->
 <!doctype html>
 <html lang="en">
 <head>
-<meta name="echo-build" content="4.7">
+<meta name="echo-build" content="4.7.2">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b1020">
@@ -1144,13 +1144,13 @@ body.keyboard-open .bottom-nav{display:none}
 .share-visual-top{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:32px}
 .share-visual-brand{font-size:12px;font-weight:950;letter-spacing:.22em;color:#fff}
 .share-visual-kind{font-size:9px;font-weight:900;letter-spacing:.15em;color:var(--accent);padding:6px 9px;border:1px solid rgba(140,240,199,.22);border-radius:999px;background:rgba(140,240,199,.06)}
-.share-visual-quote{position:relative;z-index:1;font-family:Georgia,"Times New Roman",serif;font-size:24px;line-height:1.28;letter-spacing:-.02em;color:#fff;text-wrap:balance}
+.share-visual-quote{position:relative;z-index:1;font-family:Georgia,"Times New Roman",serif;font-size:29px;line-height:1.24;letter-spacing:-.02em;color:#fff;text-wrap:balance}
 .share-visual-quote::before{content:"“";display:block;font-family:Georgia,serif;font-size:55px;line-height:.55;color:var(--accent2);opacity:.9;margin-bottom:14px}
 .share-visual-source{position:relative;z-index:1;margin-top:22px;color:#b9c3dc;font-size:11px;line-height:1.45}
 .share-visual-rule{position:relative;z-index:1;width:42px;height:2px;margin:24px 0 14px;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--accent2))}
 .share-visual-footer{position:relative;z-index:1;display:flex;align-items:flex-end;justify-content:space-between;gap:14px}
-.share-visual-prompt{max-width:82%;font-size:13px;line-height:1.45;color:#eef1ff}
-.share-visual-prompt b{display:block;margin-bottom:5px;font-size:9px;letter-spacing:.13em;color:var(--accent);font-weight:950}
+.share-visual-prompt{max-width:82%;font-size:16px;line-height:1.42;color:#eef1ff}
+.share-visual-prompt b{display:block;margin-bottom:5px;font-size:11px;letter-spacing:.13em;color:var(--accent);font-weight:950}
 .share-visual-mark{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2),var(--accent3));box-shadow:0 0 22px rgba(154,167,255,.28);flex:0 0 auto}
 .share-visual-note{margin:9px 2px 0;color:var(--muted);font-size:10px;line-height:1.4;text-align:center}
 .share-prompt-card{margin-top:12px;padding:14px;border:1px solid rgba(140,240,199,.18);border-radius:16px;background:rgba(140,240,199,.045)}
@@ -2528,10 +2528,10 @@ async function createEchoShareCardFile(m,promptOverride){
     // Quote.
     ctx.fillStyle="#9aa7ff";ctx.font="700 112px Georgia,serif";ctx.fillText("“",78,275);
     const thought=cleanShareLine(m.thought)||(isReflection?"Reflection":"Captured Moment");
-    let fontSize=thought.length>260?46:thought.length>150?52:thought.length>80?60:68;
+    let fontSize=thought.length>300?50:thought.length>210?56:thought.length>130?64:thought.length>75?72:82;
     ctx.fillStyle="#ffffff";ctx.font=`600 ${fontSize}px Georgia,serif`;
     let lines=wrapCanvasText(ctx,thought,W-164);
-    while(lines.length>8 && fontSize>40){
+    while(lines.length>8 && fontSize>46){
       fontSize-=4;ctx.font=`600 ${fontSize}px Georgia,serif`;lines=wrapCanvasText(ctx,thought,W-164);
     }
     const lineH=fontSize*1.24;
@@ -2552,13 +2552,13 @@ async function createEchoShareCardFile(m,promptOverride){
     const rule=ctx.createLinearGradient(82,0,240,0);rule.addColorStop(0,"#8cf0c7");rule.addColorStop(1,"#9aa7ff");
     ctx.fillStyle=rule;roundRectPath(ctx,82,bottomY,158,6,3);ctx.fill();
 
-    ctx.fillStyle="#8cf0c7";ctx.font="900 21px -apple-system,BlinkMacSystemFont,Arial";
+    ctx.fillStyle="#8cf0c7";ctx.font="900 27px -apple-system,BlinkMacSystemFont,Arial";
     ctx.fillText(p?.text?(p.label||"TALK ABOUT IT"):"FROM ECHO",82,bottomY+66);
 
-    ctx.fillStyle="#eef1ff";ctx.font="600 34px -apple-system,BlinkMacSystemFont,Arial";
+    ctx.fillStyle="#eef1ff";ctx.font="600 43px -apple-system,BlinkMacSystemFont,Arial";
     const footerText=p?.text?p.text:(isReflection?"A reflection worth sharing.":"Something made me stop and think.");
     let fy=bottomY+118;
-    for(const line of wrapCanvasText(ctx,footerText,W-245).slice(0,3)){ctx.fillText(line,82,fy);fy+=47}
+    for(const line of wrapCanvasText(ctx,footerText,W-245).slice(0,3)){ctx.fillText(line,82,fy);fy+=57}
 
     const orb=ctx.createLinearGradient(W-190,H-180,W-92,H-82);
     orb.addColorStop(0,"#8cf0c7");orb.addColorStop(.5,"#9aa7ff");orb.addColorStop(1,"#ff9ecf");
@@ -2684,10 +2684,12 @@ async function performShareMoment(id,promptOverride){
   if(navigator.share && navigator.canShare){
     const echoCard=await createEchoShareCardFile(m,promptOverride);
     if(echoCard){
-      const withCard={...shareData,files:[echoCard]};
+      // Graphic-only share: the card already contains the Moment/Reflection
+      // and conversation invitation, so do not duplicate them as message text.
+      const graphicOnly={files:[echoCard]};
       try{
-        if(navigator.canShare(withCard)){
-          await navigator.share(withCard);
+        if(navigator.canShare(graphicOnly)){
+          await navigator.share(graphicOnly);
           return;
         }
       }catch(e){
